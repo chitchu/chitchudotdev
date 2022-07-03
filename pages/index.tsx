@@ -15,8 +15,8 @@ export default function Home() {
         src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"
         strategy="lazyOnload"
         onLoad={() => {
-          if (typeof VANTA !== 'undefined') {
-            VANTA.DOTS({
+          if (typeof (window as any).VANTA !== 'undefined') {
+            (window as any).VANTA.DOTS({
               el: '#main-container',
               mouseControls: true,
               touchControls: true,
