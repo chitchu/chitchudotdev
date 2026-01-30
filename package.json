@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.0.0",
+    "node": ">=24.0.0",
     "yarn": ">=3.0.0"
   },
   "scripts": {
@@ -12,12 +12,12 @@
     "start": "next start"
   },
   "dependencies": {
-    "next": "^16.0.0",
+    "next": "^16.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
