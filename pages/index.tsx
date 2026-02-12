@@ -3,17 +3,17 @@ import styles from '../styles/Home.module.css';
 import PluribusBackground from '../components/PluribusBackground';
 import Typewriter from '../components/Typewriter';
 
-const LANGUAGES = [
-  'Javascript.',
-  'Typescript.',
-  'React.',
-  'Node.js.',
-  'Python.',
-  'Go.',
+const PHRASES = [
+  'I write code using Javascript.',
+  'I write code using Typescript.',
+  'I write code using React.',
+  'I write code using Node.js.',
+  'I write code using Python.',
+  'I write code using Go.',
   'I tell Claude to write code for me.',
-  'console.log and pray.',
-  'Stack Overflow... I mean, my brain.',
-  'vibes.',
+  'I write code using console.log and pray.',
+  'I write code using Stack Overflow... I mean, my brain.',
+  'I write code using vibes.',
 ];
 
 export default function Home() {
@@ -29,7 +29,7 @@ export default function Home() {
           Welcome to <a href="https://chitchu.dev">chitchu.dev!</a>
         </h1>
         <p className={styles.description}>
-          <Typewriter prefix="I write code using " words={LANGUAGES} />
+          <Typewriter prefix="" words={PHRASES} />
         </p>
       </main>
       <footer className={styles.footer}>
