@@ -1,44 +1,36 @@
 import Head from 'next/head';
-import Script from 'next/script';
 import styles from '../styles/Home.module.css';
-import { useEffect, useRef } from 'react';
+import PluribusBackground from '../components/PluribusBackground';
+import Typewriter from '../components/Typewriter';
+
+const PHRASES = [
+  'I write code using Javascript.',
+  'I write code using Typescript.',
+  'I write code using React.',
+  'I write code using Node.js.',
+  'I write code using Python.',
+  'I write code using Go.',
+  'I tell Claude to write code for me.',
+  'I write code using console.log and pray.',
+  'I write code using Stack Overflow... I mean, my brain.',
+  'I write code using vibes.',
+];
 
 export default function Home() {
   return (
-    <div className={styles.container} id="main-container">
+    <div className={styles.container}>
       <Head>
         <title>Personal website of Vicente Jr Yuchitcho (chitchu)</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js" />
-      <Script
-        src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"
-        strategy="lazyOnload"
-        onLoad={() => {
-          if (typeof (window as any).VANTA !== 'undefined') {
-            (window as any).VANTA.DOTS({
-              el: '#main-container',
-              mouseControls: true,
-              touchControls: true,
-              gyroControls: false,
-              minHeight: 200.0,
-              minWidth: 200.0,
-              scale: 1.0,
-              scaleMobile: 1.0,
-              color: 0xcb07e3,
-              color2: 0xff6f00,
-              backgroundColor: 0xffffff,
-              size: 1.6,
-              spacing: 20.0,
-            });
-          }
-        }}
-      />
+      <PluribusBackground />
       <main className={styles.main}>
         <h1 className={styles.title}>
           Welcome to <a href="https://chitchu.dev">chitchu.dev!</a>
         </h1>
-        <p className={styles.description}>I write code using Javascript.</p>
+        <p className={styles.description}>
+          <Typewriter prefix="" words={PHRASES} />
+        </p>
       </main>
       <footer className={styles.footer}>
         <a href="https://github.com/chitchu">
