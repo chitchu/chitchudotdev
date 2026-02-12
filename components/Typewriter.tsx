@@ -22,7 +22,7 @@ export default function Typewriter({
   const [displayedWord, setDisplayedWord] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const wordIndexRef = useRef(0);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const tick = useCallback(() => {
     const currentWord = words[wordIndexRef.current];
