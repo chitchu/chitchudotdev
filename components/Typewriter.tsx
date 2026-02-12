@@ -10,6 +10,12 @@ interface TypewriterProps {
   className?: string;
 }
 
+function getSharedPrefixLength(a: string, b: string): number {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return i;
+}
+
 export default function Typewriter({
   prefix,
   words,
@@ -19,40 +25,45 @@ export default function Typewriter({
   pauseAfterDelete = 500,
   className,
 }: TypewriterProps) {
-  const [displayedWord, setDisplayedWord] = useState('');
+  const [displayed, setDisplayed] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const wordIndexRef = useRef(0);
+  const deleteTargetRef = useRef(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const tick = useCallback(() => {
     const currentWord = words[wordIndexRef.current];
+    const nextWordIndex = (wordIndexRef.current + 1) % words.length;
+    const nextWord = words[nextWordIndex];
 
     if (!isDeleting) {
-      // Typing
-      const next = currentWord.slice(0, displayedWord.length + 1);
-      setDisplayedWord(next);
+      // Typing forward
+      const next = currentWord.slice(0, displayed.length + 1);
+      setDisplayed(next);
 
       if (next === currentWord) {
-        // Finished typing, pause then start deleting
+        // Finished typing — figure out how far to delete
+        const shared = getSharedPrefixLength(currentWord, nextWord);
+        deleteTargetRef.current = shared;
         timeoutRef.current = setTimeout(() => setIsDeleting(true), pauseAfterType);
         return;
       }
       timeoutRef.current = setTimeout(tick, typingSpeed + Math.random() * 40);
     } else {
-      // Deleting
-      const next = currentWord.slice(0, displayedWord.length - 1);
-      setDisplayedWord(next);
+      // Deleting back to shared prefix
+      const next = currentWord.slice(0, displayed.length - 1);
+      setDisplayed(next);
 
-      if (next === '') {
-        // Finished deleting, move to next word
+      if (next.length <= deleteTargetRef.current) {
+        // Done deleting, advance to next word and start typing
         setIsDeleting(false);
-        wordIndexRef.current = (wordIndexRef.current + 1) % words.length;
+        wordIndexRef.current = nextWordIndex;
         timeoutRef.current = setTimeout(tick, pauseAfterDelete);
         return;
       }
       timeoutRef.current = setTimeout(tick, deletingSpeed + Math.random() * 20);
     }
-  }, [displayedWord, isDeleting, words, typingSpeed, deletingSpeed, pauseAfterType, pauseAfterDelete]);
+  }, [displayed, isDeleting, words, typingSpeed, deletingSpeed, pauseAfterType, pauseAfterDelete]);
 
   useEffect(() => {
     timeoutRef.current = setTimeout(tick, typingSpeed);
@@ -62,7 +73,7 @@ export default function Typewriter({
   return (
     <span className={className}>
       {prefix}
-      <span>{displayedWord}</span>
+      <span>{displayed}</span>
       <span style={{
         borderRight: '2px solid rgba(180, 190, 255, 0.8)',
         marginLeft: '2px',
