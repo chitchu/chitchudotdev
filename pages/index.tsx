@@ -3,7 +3,18 @@ import styles from '../styles/Home.module.css';
 import PluribusBackground from '../components/PluribusBackground';
 import Typewriter from '../components/Typewriter';
 
-const LANGUAGES = ['Javascript.', 'Typescript.', 'React.', 'Node.js.', 'Python.', 'Go.'];
+const LANGUAGES = [
+  'Javascript.',
+  'Typescript.',
+  'React.',
+  'Node.js.',
+  'Python.',
+  'Go.',
+  'I tell Claude to write code for me.',
+  'console.log and pray.',
+  'Stack Overflow... I mean, my brain.',
+  'vibes.',
+];
 
 export default function Home() {
   return (
