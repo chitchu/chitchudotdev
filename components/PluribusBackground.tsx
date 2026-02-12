@@ -14,6 +14,15 @@ interface Particle {
   speed: number;
 }
 
+interface PulseWave {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  strength: number;
+  speed: number;
+}
+
 const PARTICLE_COUNT = 800;
 const MOUSE_RADIUS = 180;
 const MOUSE_FORCE = 0.08;
@@ -25,6 +34,17 @@ const PARTICLE_MIN_SIZE = 1;
 const PARTICLE_MAX_SIZE = 3;
 const CONNECTION_DISTANCE = 80;
 
+// Idle animation constants
+const ATTRACTOR_SPEED = 0.0008;
+const ATTRACTOR_RADIUS = 250;
+const ATTRACTOR_FORCE = 0.012;
+const PULSE_INTERVAL = 300; // frames between pulses
+const PULSE_WAVE_SPEED = 3;
+const PULSE_MAX_RADIUS = 500;
+const PULSE_STRENGTH = 0.6;
+const FLOW_SPEED = 0.001;
+const FLOW_STRENGTH = 0.15;
+
 export default function PluribusBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
@@ -32,6 +52,7 @@ export default function PluribusBackground() {
   const animFrameRef = useRef<number>(0);
   const timeRef = useRef(0);
   const dimensionsRef = useRef({ width: 0, height: 0 });
+  const pulsesRef = useRef<PulseWave[]>([]);
 
   const initParticles = useCallback((width: number, height: number) => {
     const particles: Particle[] = [];
@@ -71,8 +92,6 @@ export default function PluribusBackground() {
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       dimensionsRef.current = { width, height };
-
-      // Reinitialize particles on resize
       particlesRef.current = initParticles(width, height);
     };
 
@@ -116,6 +135,36 @@ export default function PluribusBackground() {
 
       const particles = particlesRef.current;
       const mouse = mouseRef.current;
+      const pulses = pulsesRef.current;
+
+      // --- Idle animation: roaming attractor ---
+      // Traces a slow Lissajous curve across the screen
+      const attractorX = width * 0.5 + Math.sin(t * ATTRACTOR_SPEED) * width * 0.35;
+      const attractorY = height * 0.5 + Math.cos(t * ATTRACTOR_SPEED * 0.7) * height * 0.35;
+
+      // --- Idle animation: spawn pulse waves periodically ---
+      if (t % PULSE_INTERVAL === 0) {
+        pulses.push({
+          x: width * (0.2 + Math.random() * 0.6),
+          y: height * (0.2 + Math.random() * 0.6),
+          radius: 0,
+          maxRadius: PULSE_MAX_RADIUS + Math.random() * 200,
+          strength: PULSE_STRENGTH,
+          speed: PULSE_WAVE_SPEED + Math.random() * 1.5,
+        });
+      }
+
+      // Update pulse waves
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        pulses[i].radius += pulses[i].speed;
+        if (pulses[i].radius > pulses[i].maxRadius) {
+          pulses.splice(i, 1);
+        }
+      }
+
+      // --- Idle animation: flow field ---
+      // A slowly rotating vector field that nudges particles
+      const flowAngle = t * FLOW_SPEED;
 
       // Update and draw particles
       for (let i = 0; i < particles.length; i++) {
@@ -131,6 +180,42 @@ export default function PluribusBackground() {
         p.vx += (targetX - p.x) * RETURN_FORCE;
         p.vy += (targetY - p.y) * RETURN_FORCE;
 
+        // --- Idle: attractor pull ---
+        const adx = attractorX - p.x;
+        const ady = attractorY - p.y;
+        const aDist = Math.sqrt(adx * adx + ady * ady);
+        if (aDist < ATTRACTOR_RADIUS && aDist > 0) {
+          const aForce = (1 - aDist / ATTRACTOR_RADIUS) * ATTRACTOR_FORCE;
+          p.vx += (adx / aDist) * aForce;
+          p.vy += (ady / aDist) * aForce;
+        }
+
+        // --- Idle: pulse wave push ---
+        for (let j = 0; j < pulses.length; j++) {
+          const pulse = pulses[j];
+          const pdx = p.x - pulse.x;
+          const pdy = p.y - pulse.y;
+          const pDist = Math.sqrt(pdx * pdx + pdy * pdy);
+          const ringDist = Math.abs(pDist - pulse.radius);
+          const ringWidth = 60;
+          if (ringDist < ringWidth && pDist > 0) {
+            const falloff = (1 - ringDist / ringWidth) * (1 - pulse.radius / pulse.maxRadius);
+            const pForce = falloff * pulse.strength;
+            p.vx += (pdx / pDist) * pForce;
+            p.vy += (pdy / pDist) * pForce;
+            // Brighten particles hit by pulse
+            p.alpha = Math.min(1, p.alpha + falloff * 0.3);
+          }
+        }
+
+        // --- Idle: flow field ---
+        const cellSize = 200;
+        const flowNoise = Math.sin((p.x / cellSize) + flowAngle) *
+                          Math.cos((p.y / cellSize) + flowAngle * 0.6);
+        const flowDir = flowAngle + flowNoise * Math.PI;
+        p.vx += Math.cos(flowDir) * FLOW_STRENGTH * 0.1;
+        p.vy += Math.sin(flowDir) * FLOW_STRENGTH * 0.1;
+
         // Mouse interaction - magnetic repulsion with swirl
         if (mouse.active) {
           const dx = p.x - mouse.x;
@@ -140,13 +225,10 @@ export default function PluribusBackground() {
           if (dist < MOUSE_RADIUS) {
             const force = (1 - dist / MOUSE_RADIUS) * MOUSE_FORCE;
             const angle = Math.atan2(dy, dx);
-            // Repulsion + slight tangential swirl for that magnetic feel
             p.vx += Math.cos(angle) * force * 8;
             p.vy += Math.sin(angle) * force * 8;
             p.vx += Math.cos(angle + Math.PI / 2) * force * 2;
             p.vy += Math.sin(angle + Math.PI / 2) * force * 2;
-
-            // Brighten particles near mouse
             p.alpha = Math.min(1, p.baseAlpha + (1 - dist / MOUSE_RADIUS) * 0.5);
           } else {
             p.alpha += (p.baseAlpha - p.alpha) * 0.05;
@@ -190,6 +272,19 @@ export default function PluribusBackground() {
             ctx.strokeStyle = `rgba(180, 190, 220, ${alpha})`;
             ctx.stroke();
           }
+        }
+      }
+
+      // Draw subtle pulse wave rings (visual feedback)
+      for (let i = 0; i < pulses.length; i++) {
+        const pulse = pulses[i];
+        const fadeout = 1 - pulse.radius / pulse.maxRadius;
+        if (fadeout > 0) {
+          ctx.beginPath();
+          ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(180, 190, 255, ${fadeout * 0.04})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
         }
       }
 
