@@ -16,3 +16,9 @@ a {
 * {
   box-sizing: border-box;
 }
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}

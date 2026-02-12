@@ -1,6 +1,9 @@
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
 import PluribusBackground from '../components/PluribusBackground';
+import Typewriter from '../components/Typewriter';
+
+const LANGUAGES = ['Javascript.', 'Typescript.', 'React.', 'Node.js.', 'Python.', 'Go.'];
 
 export default function Home() {
   return (
@@ -14,7 +17,9 @@ export default function Home() {
         <h1 className={styles.title}>
           Welcome to <a href="https://chitchu.dev">chitchu.dev!</a>
         </h1>
-        <p className={styles.description}>I write code using Javascript.</p>
+        <p className={styles.description}>
+          <Typewriter prefix="I write code using " words={LANGUAGES} />
+        </p>
       </main>
       <footer className={styles.footer}>
         <a href="https://github.com/chitchu">
